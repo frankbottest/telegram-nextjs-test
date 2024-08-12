@@ -55,7 +55,7 @@ export default function Check() {
 				onClick={handleCheckTransaction}
 				style={{ padding: '10px', width: '100%' }}
 			>
-				Verify
+				Verify1
 			</button>
 			{message && <p style={{ marginTop: '20px' }}>{message}</p>}
 		</div>
