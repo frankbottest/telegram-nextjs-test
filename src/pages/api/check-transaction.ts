@@ -32,7 +32,7 @@ export default async function handler(
 					Math.pow(10, transferDetails.decimals)
 				const tokenName = transferDetails.symbol
 
-				if (tokenName === 'USDT' && transactionAmount >= 100) {
+				if (tokenName === 'USDT' && transactionAmount >= 599) {
 					// Генерация токена
 					const token = generateToken()
 
