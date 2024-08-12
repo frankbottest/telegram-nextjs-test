@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { generateToken } from '../../lib/hashUtils'
 import { prisma } from '../../prisma'
@@ -9,11 +8,33 @@ export default async function handler(
 ) {
 	const { transactionHash, userId } = req.body
 
+	// Проверяем, есть ли пользователь с таким userId
+	const existingUser = await prisma.user.findUnique({
+		where: { userId },
+	})
+
+	if (existingUser) {
+		// Если пользователь уже верифицирован
+		if (existingUser.token) {
+			return res
+				.status(200)
+				.json({
+					status: 'success',
+					message: 'User already verified',
+					token: existingUser.token,
+				})
+		}
+		return res
+			.status(400)
+			.json({ status: 'fail', message: 'User not verified' })
+	}
+
+	// Если пользователь еще не существует, проверяем транзакцию
 	const url = `https://apilist.tronscanapi.com/api/transaction-info?hash=${transactionHash}`
 
 	try {
-		const response = await axios.get(url)
-		const transaction = response.data
+		const response = await fetch(url)
+		const transaction = await response.json()
 
 		if (transaction.confirmed) {
 			let transferDetails
@@ -33,47 +54,48 @@ export default async function handler(
 				const tokenName = transferDetails.symbol
 
 				if (tokenName === 'USDT' && transactionAmount >= 599) {
-					// Генерация токена
 					const token = generateToken()
 
-					// Создание или обновление пользователя в базе данных
-					await prisma.user.upsert({
-						where: { userId },
-						update: { transactionHash, token },
-						create: { userId, transactionHash, token },
+					await prisma.user.create({
+						data: {
+							userId,
+							transactionHash,
+							token,
+						},
 					})
 
-					return res.json({
-						status: 'success',
-						message: 'Доступ разрешен',
-						amount: transactionAmount,
-						token,
-					})
+					return res
+						.status(200)
+						.json({
+							status: 'success',
+							message: 'Verification successful',
+							token,
+						})
 				} else {
-					return res.json({
-						status: 'fail',
-						message:
-							'Доступ ограничен: сумма транзакции неверна или это не USDT',
-					})
+					return res
+						.status(400)
+						.json({
+							status: 'fail',
+							message: 'Invalid transaction amount or token',
+						})
 				}
 			} else {
-				return res.json({
-					status: 'fail',
-					message:
-						'Доступ ограничен: информация о переводе токенов отсутствует',
-				})
+				return res
+					.status(400)
+					.json({
+						status: 'fail',
+						message: 'Token transfer information missing',
+					})
 			}
 		} else {
-			return res.json({
-				status: 'fail',
-				message: 'Доступ ограничен: транзакция не подтверждена',
-			})
+			return res
+				.status(400)
+				.json({ status: 'fail', message: 'Transaction not confirmed' })
 		}
 	} catch (error) {
-		console.error('Ошибка при получении данных о транзакции:', error)
-		return res.json({
-			status: 'error',
-			message: 'Доступ ограничен: ошибка при проверке транзакции',
-		})
+		console.error('Error checking transaction:', error)
+		return res
+			.status(500)
+			.json({ status: 'error', message: 'Error verifying transaction' })
 	}
 }
