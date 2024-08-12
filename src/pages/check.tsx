@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { TelegramWebApp, getUser } from '../lib/telegram'
+import { getUser, ready } from '../lib/telegram'
 
 export default function Check() {
 	const [transactionHash, setTransactionHash] = useState<string>('')
@@ -8,7 +8,7 @@ export default function Check() {
 	const router = useRouter()
 
 	useEffect(() => {
-		TelegramWebApp.ready()
+		ready()
 	}, [])
 
 	const handleCheckTransaction = async () => {
@@ -24,7 +24,7 @@ export default function Check() {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
-					userId: getUser().id,
+					userId: getUser()?.id,
 					transactionHash,
 				}),
 			})

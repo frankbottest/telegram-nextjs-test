@@ -1,11 +1,30 @@
-export const TelegramWebApp = window.Telegram.WebApp
+let TelegramWebApp: any = null
 
-export const getUser = () => TelegramWebApp.initDataUnsafe.user
+if (typeof window !== 'undefined' && window.Telegram) {
+	TelegramWebApp = window.Telegram.WebApp
+}
 
-export const ready = () => TelegramWebApp.ready()
+export const getUser = () => {
+	if (TelegramWebApp) {
+		return TelegramWebApp.initDataUnsafe.user
+	}
+	return null
+}
 
-export const close = () => TelegramWebApp.close()
+export const ready = () => {
+	if (TelegramWebApp) {
+		TelegramWebApp.ready()
+	}
+}
 
-export const expand = () => TelegramWebApp.expand()
+export const close = () => {
+	if (TelegramWebApp) {
+		TelegramWebApp.close()
+	}
+}
 
-// Добавьте любые другие методы, которые часто используете
+export const expand = () => {
+	if (TelegramWebApp) {
+		TelegramWebApp.expand()
+	}
+}

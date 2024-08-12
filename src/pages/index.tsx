@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
-import { getUser, ready } from '../lib/telegram' // Импортируем функции из telegram.ts
+import { getUser, ready } from '../lib/telegram'
 
 export default function Home() {
 	const [user, setUser] = useState<any>(null)
@@ -8,16 +8,12 @@ export default function Home() {
 	const router = useRouter()
 
 	useEffect(() => {
-		ready() // Инициализация Telegram Web App
-		const authToken = localStorage.getItem('authToken')
-
-		if (!authToken) {
-			router.push('/check') // Перенаправление на страницу проверки, если токен не найден
+		ready()
+		const userData = getUser()
+		if (userData) {
+			setUser(userData)
 		} else {
-			const userData = getUser()
-			if (userData) {
-				setUser(userData)
-			}
+			router.push('/check')
 		}
 	}, [router])
 

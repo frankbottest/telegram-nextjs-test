@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { getUser, ready } from '../lib/telegram' // Импортируем функции из telegram.ts
+import { getUser, ready } from '../lib/telegram'
 
 export default function App() {
 	const [user, setUser] = useState<any>(null)
 
 	useEffect(() => {
-		ready() // Инициализация Telegram Web App
+		ready()
 		const userData = getUser()
 		if (userData) {
 			setUser(userData)
